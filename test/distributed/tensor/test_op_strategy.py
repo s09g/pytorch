@@ -1104,18 +1104,18 @@ class TestExpandToFullMeshOpStrategy(TestCase):
             RuntimeSchemaInfo(needs_pytree=False),
         )
 
-        # Placement list with None at position 3 (simulating grad_bias = None)
-        # Structure: [out0, out1, out2, None, in0, in1, in2, in3]
+        # Placement list with None at position 7 (simulating grad_bias = None)
+        # Structure: [in0, in1, in2, in3, out0, out1, out2, None]
         single_mesh_dim_strategies = [
             [
-                Replicate(),  # output 0
-                Replicate(),  # output 1
-                Replicate(),  # output 2
-                None,  # output 3 (None, like grad_bias when attn_bias is None)
                 Replicate(),  # input 0: grad_out
                 Replicate(),  # input 1: query
                 Replicate(),  # input 2: key
                 Replicate(),  # input 3: value
+                Replicate(),  # output 0
+                Replicate(),  # output 1
+                Replicate(),  # output 2
+                None,  # output 3 (None, like grad_bias when attn_bias is None)
             ]
         ]
 
@@ -1123,7 +1123,7 @@ class TestExpandToFullMeshOpStrategy(TestCase):
             mesh,
             op_schema,
             single_mesh_dim_strategies,
-            input_index=4,  # 4 outputs (including the None)
+            num_outputs=4,  # 4 outputs (including the None)
         )
 
         # Verify the input specs have correct tensor_meta
@@ -1164,9 +1164,9 @@ class TestExpandToFullMeshOpStrategy(TestCase):
         # Placement list without any None entries
         single_mesh_dim_strategies = [
             [
-                Replicate(),  # output
                 Replicate(),  # input 0
                 Replicate(),  # input 1
+                Replicate(),  # output
             ]
         ]
 
@@ -1174,7 +1174,7 @@ class TestExpandToFullMeshOpStrategy(TestCase):
             mesh,
             op_schema,
             single_mesh_dim_strategies,
-            input_index=1,
+            num_outputs=1,
         )
 
         strategy = result.strategies[0]
@@ -1208,12 +1208,12 @@ class TestExpandToFullMeshOpStrategy(TestCase):
         # Placement list with multiple None entries in outputs
         single_mesh_dim_strategies = [
             [
+                Replicate(),  # input 0
+                Replicate(),  # input 1
                 Replicate(),  # output 0 (non-None)
                 None,  # output 1 (None)
                 Replicate(),  # output 2 (non-None)
                 None,  # output 3 (None)
-                Replicate(),  # input 0
-                Replicate(),  # input 1
             ]
         ]
 
@@ -1221,7 +1221,7 @@ class TestExpandToFullMeshOpStrategy(TestCase):
             mesh,
             op_schema,
             single_mesh_dim_strategies,
-            input_index=4,  # 4 outputs (2 None, 2 non-None)
+            num_outputs=4,  # 4 outputs (2 None, 2 non-None)
         )
 
         strategy = result.strategies[0]
